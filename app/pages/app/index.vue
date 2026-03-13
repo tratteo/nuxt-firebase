@@ -58,23 +58,18 @@
 </template>
 
 <script lang="ts" setup>
-import type { ParaphraseTextFlowInput, ParaphraseTextFlowOutput } from "@flows/paraphrase_text";
 import type { FormSubmitEvent } from "@nuxt/ui";
-import dayjs from "dayjs";
-import { collection, deleteDoc, doc, getDocs, setDoc } from "firebase/firestore";
-import { httpsCallable } from "firebase/functions";
+import { collection, doc, getDocs, setDoc } from "firebase/firestore";
 import z from "zod";
 import { useUser } from "~/composables/stores/user";
 
 const formSchema = z.object({ fullName: z.string().nonempty(), role: z.string().optional() });
 type FormSchema = z.infer<typeof formSchema>;
 
-const { $firestore, $functions } = useNuxtApp();
+const { $firestore } = useNuxtApp();
 const newNodeData = ref<NoteData>(<NoteData>{});
 const noteModalEl = useTemplateRef("noteModalEl");
 const toast = useToast();
-const paraphraseInstructions = ref<string>();
-const generating = ref(false);
 const user = useUser();
 const {
     data: notes,
@@ -85,55 +80,12 @@ const {
     return notes.docs.map((d) => <WithId<NoteData>>{ id: d.id, payload: d.data() as NoteData });
 });
 
-function noteUrl(id: string) {
-    return `${window.origin}/notes/${user.userData!.id}/${id}`;
-}
-async function paraphraseNote(note: WithId<NoteData>) {
-    if (!paraphraseInstructions.value) return;
-    generating.value = true;
-    try {
-        const f = httpsCallable<ParaphraseTextFlowInput, ParaphraseTextFlowOutput>($functions, "paraphraseText");
-        const res = await f({ text: note.payload.content, instructions: paraphraseInstructions.value });
-        const newData = { ...note.payload, content: res.data?.text };
-        await editNote(note.id, newData, false);
-        toast.add({ title: "Text edited with AI", description: res.data.summary });
-    } catch (ex) {
-        toast.add({ title: "Error paraphrasing note", color: "error" });
-    } finally {
-        generating.value = false;
-        paraphraseInstructions.value = undefined;
-    }
-}
-
 async function addNote() {
     newNodeData.value.editedAt = new Date().getTime();
     const notesColl = collection($firestore, "users", user.userData!.id, "notes");
     await setDoc(doc(notesColl), newNodeData.value);
     await refresh();
     noteModalEl.value?.close();
-}
-
-async function deleteNote(id: string) {
-    const notesDoc = doc($firestore, "users", user.userData!.id, "notes", id);
-    try {
-        await deleteDoc(notesDoc);
-        await refresh();
-        toast.add({ title: "Note deleted", color: "success" });
-    } catch (ex) {
-        toast.add({ title: "Error deleting note", color: "warning" });
-    }
-}
-
-async function editNote(id: string, data: NoteData, showToast: boolean = true) {
-    const notesDoc = doc($firestore, "users", user.userData!.id, "notes", id);
-    data.editedAt = new Date().getTime();
-    try {
-        await setDoc(notesDoc, data, { merge: true });
-        await refresh();
-        if (showToast) toast.add({ title: "Data saved", color: "success" });
-    } catch (ex) {
-        if (showToast) toast.add({ title: "Error saving data", color: "warning" });
-    }
 }
 
 async function onSubmit(e: FormSubmitEvent<FormSchema>) {
