@@ -1,0 +1,15 @@
+---
+model: googleai/gemini-2.5-flash
+input:
+    schema: ParaphraseTextInputSchema
+output:
+    schema: ParaphraseTextOutputSchema
+---
+
+Your task is to paraphrase the original text provided based on the instructions given. Output the content as a valid Markdown string. 
+
+### Original text to paraphrase
+{{text}}
+
+### Instructions to follow
+{{instructions}}

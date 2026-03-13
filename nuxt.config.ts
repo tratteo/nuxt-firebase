@@ -6,9 +6,23 @@ export default defineNuxtConfig({
     compatibilityDate: "2025-07-15",
     devtools: { enabled: true },
     css: ["~/assets/css/main.css"],
+    alias: {
+        "@flows/*": "../functions/src/flows/*",
+    },
     fonts: {
         defaults: {
             weights: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+        },
+    },
+    vite: {
+        optimizeDeps: {
+            include: [
+                "@nuxt/ui > prosemirror-state",
+                "@nuxt/ui > prosemirror-transform",
+                "@nuxt/ui > prosemirror-model",
+                "@nuxt/ui > prosemirror-view",
+                "@nuxt/ui > prosemirror-gapcursor",
+            ],
         },
     },
     site: {
@@ -46,7 +60,11 @@ export default defineNuxtConfig({
     },
     appConfig: {
         firebase: {
-            emulators: false,
+            emulators: {
+                functions: true,
+                firestore: true,
+                auth: true,
+            },
         },
     },
     runtimeConfig: {
