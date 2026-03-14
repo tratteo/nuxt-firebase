@@ -20,10 +20,17 @@ const ParaphraseTextInputSchema = ai.defineSchema("ParaphraseTextInputSchema", f
 const ParaphraseTextOutputSchema = ai.defineSchema("ParaphraseTextOutputSchema", flowOutputObject);
 const prompt = ai.prompt<typeof ParaphraseTextInputSchema, typeof ParaphraseTextOutputSchema>("paraphraseText");
 
-export const paraphraseTextFlow = ai.defineFlow({ name: "paraphraseText", inputSchema: flowInputObject, outputSchema: flowOutputObject }, async (input) => {
-    const { output } = await prompt(input);
-    if (output == null) {
-        throw new Error("Response doesn't satisfy schema.");
-    }
-    return output;
-});
+export const paraphraseTextFlow = ai.defineFlow(
+    {
+        name: "paraphraseText",
+        inputSchema: flowInputObject,
+        outputSchema: flowOutputObject,
+    },
+    async (input) => {
+        const { output } = await prompt(input);
+        if (output == null) {
+            throw new Error("Response doesn't satisfy schema.");
+        }
+        return output;
+    },
+);
