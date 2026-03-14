@@ -39,7 +39,7 @@ import appMeta from "~/app.meta";
 
 const navItems: NavigationMenuItem[] = [
     { label: "YouTube channel", icon: "logos:youtube-icon", target: "_blank", to: "https://www.youtube.com/@matteo-beltrame" },
-    { label: "Repository", icon: "mdi:github", target: "_blank", to: "https://github.com/tratteo/nuxt_template" },
+    { label: "Repository", icon: "mdi:github", target: "_blank", to: "https://github.com/tratteo/nuxt-firebase" },
 ];
 </script>
 

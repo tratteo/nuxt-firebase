@@ -39,35 +39,14 @@
         <u-empty v-if="status === 'error'" title="Error fetching notes" icon="lucide:book-alert" variant="naked"></u-empty>
         <u-empty v-else-if="!(notes?.length || 0)" title="No notes found" variant="naked"></u-empty>
         <div v-else class="flex flex-col gap-2">
-            <u-card v-for="n in notes" variant="soft">
-                <template #header>
-                    <p class="typ-sublabel">Last edited {{ dayjs(n.payload.editedAt).format("DD MMM, HH:mm") }}</p>
-                    <copyable-text class="w-full" :content="noteUrl(n.id)"></copyable-text>
-                </template>
-                <div class="flex items-stretch gap-2 flex-col w-full">
-                    <u-form-field label="Title">
-                        <u-input v-model="n.payload.title"></u-input>
-                    </u-form-field>
-                    <u-form-field label="Content">
-                        <u-textarea autoresize v-model="n.payload.content"></u-textarea>
-                    </u-form-field>
-                </div>
-                <template #footer>
-                    <div class="flex items-center gap-2">
-                        <u-button label="Save" @click="() => editNote(n.id, n.payload)"> </u-button>
-                        <u-button label="Delete" variant="soft" color="error" @click="() => deleteNote(n.id)"> </u-button>
-                    </div>
-                </template>
-            </u-card>
+            <u-page-card v-for="n in notes" variant="soft" :title="n.payload.title" :to="`/app/notes/${n.id}`" :ui="{ header: 'w-full' }"> </u-page-card>
         </div>
-        <modal ref="noteModalEl" title="Add a new note" @open="() => (newNodeData = <NoteData>{})">
+
+        <modal ref="noteModalEl" title="Add a new note" @open="() => (newNodeData = <NoteData>{ content: '' })">
             <template #body>
                 <div class="flex items-stretch gap-2 flex-col w-full">
                     <u-form-field label="Title">
                         <u-input v-model="newNodeData.title"></u-input>
-                    </u-form-field>
-                    <u-form-field label="Content">
-                        <u-textarea autoresize v-model="newNodeData.content"></u-textarea>
                     </u-form-field>
                 </div>
             </template>
@@ -80,8 +59,7 @@
 
 <script lang="ts" setup>
 import type { FormSubmitEvent } from "@nuxt/ui";
-import dayjs from "dayjs";
-import { collection, deleteDoc, doc, getDocs, setDoc } from "firebase/firestore";
+import { collection, doc, getDocs, setDoc } from "firebase/firestore";
 import z from "zod";
 import { useUser } from "~/composables/stores/user";
 
@@ -102,39 +80,12 @@ const {
     return notes.docs.map((d) => <WithId<NoteData>>{ id: d.id, payload: d.data() as NoteData });
 });
 
-function noteUrl(id: string) {
-    return `${window.origin}/notes/${user.userData!.id}/${id}`;
-}
-
 async function addNote() {
     newNodeData.value.editedAt = new Date().getTime();
     const notesColl = collection($firestore, "users", user.userData!.id, "notes");
     await setDoc(doc(notesColl), newNodeData.value);
     await refresh();
     noteModalEl.value?.close();
-}
-
-async function deleteNote(id: string) {
-    const notesDoc = doc($firestore, "users", user.userData!.id, "notes", id);
-    try {
-        await deleteDoc(notesDoc);
-        await refresh();
-        toast.add({ title: "Note deleted", color: "success" });
-    } catch (ex) {
-        toast.add({ title: "Error deleting note", color: "warning" });
-    }
-}
-
-async function editNote(id: string, data: NoteData) {
-    const notesDoc = doc($firestore, "users", user.userData!.id, "notes", id);
-    data.editedAt = new Date().getTime();
-    try {
-        await setDoc(notesDoc, data, { merge: true });
-        await refresh();
-        toast.add({ title: "Data saved", color: "success" });
-    } catch (ex) {
-        toast.add({ title: "Error saving data", color: "warning" });
-    }
 }
 
 async function onSubmit(e: FormSubmitEvent<FormSchema>) {

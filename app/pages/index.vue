@@ -71,13 +71,13 @@ const providers: ButtonProps[] = [
     },
 ];
 const loginSchema = z.object({
-    email: z.email(),
+    email: z.string().email(),
     password: z.string().min(8),
     remember: z.boolean(),
 });
 const registerSchema = z.object({
     name: z.string(),
-    email: z.email(),
+    email: z.string().email(),
     password: z.string().min(8),
     remember: z.boolean(),
 });
@@ -139,7 +139,7 @@ watch(
     () => {
         if (userStore.isLogged) navigateTo("/app");
     },
-    { immediate: true }
+    { immediate: true },
 );
 
 async function onSignInSubmit(payload: FormSubmitEvent<LoginSchema>) {

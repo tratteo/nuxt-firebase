@@ -7,6 +7,9 @@
     --font-sans: "Geist", sans-serif;
 }
 
+.firebase-emulator-warning {
+    display: none;
+}
 * {
     scrollbar-width: thin !important;
     scroll-behavior: smooth;
